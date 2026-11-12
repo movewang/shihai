@@ -1,0 +1,10 @@
+[Unit]
+Description=Breathe Shihai snapshot every 2 minutes
+
+[Timer]
+OnBootSec=40s
+OnUnitActiveSec=120s
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

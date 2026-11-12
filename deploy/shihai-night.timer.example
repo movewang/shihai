@@ -1,0 +1,10 @@
+[Unit]
+Description=Shihai night consolidation at 04:00 local
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 Asia/Shanghai        # ← 改成你的时区
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

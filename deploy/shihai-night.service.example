@@ -1,0 +1,10 @@
+[Unit]
+Description=Shihai nightly memory consolidation
+After=network.target
+
+[Service]
+Type=oneshot
+User=YOURUSER
+Environment=SHIHAI_BRAIN_KEY=                  # 可选：夜间日记要调大脑时给 key
+ExecStart=/usr/bin/node /opt/shihai/tools/night.mjs
+NoNewPrivileges=true

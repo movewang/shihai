@@ -1,0 +1,10 @@
+[Unit]
+Description=Shihai snapshot generator
+After=network.target
+
+[Service]
+Type=oneshot
+User=YOURUSER                                  # ← 改成运行你的 AI 的普通用户
+ExecStart=/usr/bin/node /opt/shihai/tools/snapshot.mjs
+NoNewPrivileges=true
+ProtectSystem=full
