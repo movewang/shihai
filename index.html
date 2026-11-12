@@ -5,14 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>识海 · 星云</title>
-<script>
-  // ═════ 在这里改你的 AI 的名字/称谓/标题（可选） ═════
-  window.SHIHAI_CONFIG = {
-    aiName: "AI",          // 你的 AI 的名字（面板各处显示用）
-    ownerName: "主人",      // AI 对你的称呼（流式气泡前缀等）
-    title: "识 海 · 星 云"  // 左上角标题
-  };
-</script>
 <style>
   :root {
     --ink: #04070f;
@@ -31,30 +23,78 @@
 
   .panel {
     position: absolute; padding: 12px 14px;
-    background: rgba(5, 10, 22, .58);
+    background: rgba(5, 10, 22, .62);
     border: 1px solid rgba(111, 214, 232, .22);
     border-radius: 10px;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
-  #state { top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); max-width: min(320px, calc(100vw - 28px)); }
+
+  /* 顶部居中 · 实时生命体征胶囊 */
+  #nowBox {
+    position: absolute;
+    top: max(14px, env(safe-area-inset-top));
+    left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px;
+    max-width: min(520px, calc(100vw - 580px));
+    background: rgba(6, 13, 28, .78);
+    border: 1px solid rgba(111, 214, 232, .34);
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .45), 0 0 18px rgba(111, 214, 232, .08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    pointer-events: auto;
+    z-index: 5;
+  }
+  #nowBox .dot2 { width: 8px; height: 8px; border-radius: 50%; background: #6fd6e8; box-shadow: 0 0 8px #6fd6e8; flex: none; animation: nowpulse 1.6s infinite; }
+  #nowBox.idle { border-color: rgba(140, 160, 190, .24); }
+  #nowBox.idle .dot2 { background: #55637a; box-shadow: none; animation: none; }
+  #nowBox.warn { border-color: rgba(255, 179, 71, .55); box-shadow: 0 4px 20px rgba(0, 0, 0, .5), 0 0 18px rgba(255, 179, 71, .16); }
+  #nowBox.warn .dot2 { background: #ffb347; box-shadow: 0 0 8px #ffb347; animation: nowpulse .55s infinite; }
+  #nowBox .now-tag {
+    font-size: 12px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; flex: none;
+    color: var(--cyan); background: rgba(111, 214, 232, .12); border: 1px solid rgba(111, 214, 232, .28);
+    padding: 2px 8px; border-radius: 999px;
+  }
+  #nowBox.idle .now-tag { color: var(--dim); background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); }
+  #nowBox.warn .now-tag { color: #ffb347; background: rgba(255, 179, 71, .14); border-color: rgba(255, 179, 71, .35); }
+  #nowBox .nd { font-size: 12px; color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #nowBox .nowage { margin-left: auto; padding-left: 6px; font-size: 11px; color: rgba(223,233,245,.52); white-space: nowrap; flex: none; }
+  #nowBox.warn .nowage { color: #ffb347; }
+  @keyframes nowpulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.68); opacity: .45; } }
+
+  /* 左侧 · 静态档案与欠账台账 */
+  #state { top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); width: min(304px, calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow-y: auto; scrollbar-width: none; }
+  #state::-webkit-scrollbar { display: none; }
   #state .name { font-size: 12px; letter-spacing: .3em; color: var(--cyan); margin-bottom: 6px; }
-  #state .activity { font-size: 15px; line-height: 1.45; }
+  #state .activity { font-size: 14px; line-height: 1.48; }
   #state .mood { margin-top: 5px; font-size: 12px; color: var(--dim); }
-  #state .bars { margin-top: 8px; display: grid; gap: 5px; }
+  #state .bars { margin-top: 9px; display: grid; gap: 5px; }
   .bar { display: grid; grid-template-columns: 44px 1fr 34px; align-items: center; gap: 8px; font-size: 11px; color: var(--dim); }
   .bar i { display: block; height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
   .bar i b { display: block; height: 100%; background: linear-gradient(90deg, var(--deep), var(--cyan)); border-radius: 2px; transition: width .8s ease; }
   .bar em { font-style: normal; text-align: right; color: var(--bone); }
 
-  #monologue { bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); max-width: min(420px, calc(100vw - 28px)); font-size: 13px; line-height: 1.5; color: var(--bone); border-color: rgba(255, 201, 138, .25); }
+  /* 底部居中 · 意识流 */
+  #monologue { bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); max-width: min(440px, calc(100vw - 28px)); font-size: 13px; line-height: 1.5; color: var(--bone); border-color: rgba(255, 201, 138, .25); }
   #monologue .k { color: var(--warm); font-size: 10px; letter-spacing: .28em; display: block; margin-bottom: 4px; }
 
   #tip { position: fixed; pointer-events: none; max-width: 240px; padding: 8px 10px; font-size: 12px; line-height: 1.5;
          background: rgba(6, 12, 24, .92); border: 1px solid rgba(111, 214, 232, .35); border-radius: 8px;
          opacity: 0; transition: opacity .15s; z-index: 10; }
-  #foot { position: absolute; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); font-size: 10px; color: rgba(223,233,245,.4); text-align: right; line-height: 1.7; }
-  #legend { position: absolute; top: calc(max(14px, env(safe-area-inset-top)) + 66px); right: max(14px, env(safe-area-inset-right)); max-width: 224px; font-size: 10px; line-height: 2; color: var(--dim); }
+
+  /* 右侧 · 自适应纵列（呼吸提示 + 图例 + 今日足迹） */
+  #rightCol {
+    position: absolute;
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+    display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+    width: 236px; max-height: calc(100vh - 28px);
+  }
+  #foot { font-size: 10px; color: rgba(223,233,245,.42); text-align: right; line-height: 1.6; padding-right: 2px; }
+  #rightCol .panel { position: static; width: 100%; }
+  #legend { font-size: 10px; line-height: 1.95; color: var(--dim); }
   #legend .lg { display: flex; align-items: center; gap: 7px; }
   #legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
   #legend .dg { background: rgba(255,201,138,.95); box-shadow: 0 0 0 2px rgba(255,201,138,.35); }
@@ -69,6 +109,13 @@
     box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
   #legend .spinrow { margin-bottom: 3px; }
   #legend #spinBtn { pointer-events: auto; font: 600 10px/1 'PingFang SC', 'Noto Sans CJK SC', sans-serif; letter-spacing: .14em; color: var(--cyan); background: rgba(111,214,232,.1); border: 1px solid rgba(111,214,232,.4); border-radius: 6px; padding: 5px 9px; cursor: pointer; }
+
+  #tlBox { display: none; border-color: rgba(111, 214, 232, .18); }
+  #tlBox .tl-k { font-size: 10px; letter-spacing: .26em; color: var(--cyan); margin-bottom: 6px; }
+  #tlBox #tlList { display: grid; gap: 4px; max-height: 210px; overflow: hidden; }
+  #tlBox .ev { font-size: 10.5px; line-height: 1.45; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #tlBox .ev b { color: var(--bone); font-weight: 500; }
+
   #loopsBox { display: none; margin-top: 9px; border-top: 1px dashed rgba(255,90,64,.35); padding-top: 7px; }
   #loopsBox .loops-k { font-size: 10px; letter-spacing: .26em; color: #ff9a8b; margin-bottom: 4px; }
   #loopsBox #loopsList { display: grid; gap: 3px; }
@@ -76,13 +123,25 @@
   #chat { margin-top: 8px; border-top: 1px dashed rgba(255,255,255,.14); padding-top: 7px; display: grid; gap: 3px; }
   #chat div { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #chat div.him { color: rgba(223,233,245,.8); }
+
+  @media (max-width: 960px) {
+    #nowBox { left: 10px; right: 10px; transform: none; max-width: none; padding: 6px 11px; gap: 7px; }
+    #state { top: calc(max(10px, env(safe-area-inset-top)) + 44px); left: 10px; width: min(210px, 50vw); padding: 9px 10px; max-height: 44vh; }
+    #state .activity { font-size: 12.5px; }
+    #chat { display: none; }
+    #rightCol { top: calc(max(10px, env(safe-area-inset-top)) + 44px); right: 10px; width: min(176px, 42vw); gap: 6px; }
+    #legend { padding: 8px 9px; line-height: 1.75; }
+    #tlBox { display: none !important; }
+    #monologue { bottom: max(12px, env(safe-area-inset-bottom)); padding: 9px 12px; font-size: 12px; max-width: calc(100vw - 20px); }
+  }
 </style>
 </head>
 <body>
 <canvas id="sea"></canvas>
 <div id="ui">
+  <div id="nowBox"><span class="dot2"></span><b class="now-tag" id="nowPhase">…</b><span class="nd" id="nowDetail">等待心跳…</span><span class="nowage" id="nowAge"></span></div>
   <div class="panel" id="state">
-    <div class="name" id="panelTitle">识 海 · 星 云</div>
+    <div class="name">识 海 · 星 云</div>
     <div class="activity" id="activity">…</div>
     <div class="mood" id="mood">…</div>
     <div class="bars">
@@ -97,40 +156,39 @@
     </div>
   </div>
   <div class="panel" id="monologue"><span class="k">意 识 流</span><span id="monoText">…</span></div>
-  <div class="panel" id="legend">
-    <div class="lg spinrow"><button id="spinBtn" type="button">自转 · 开</button></div>
-    <div class="lg"><i class="dot dh"></i><span id="lgCore">中心光核 · AI本体</span></div>
-    <div class="lg2">
-      <span><i class="dot" style="background:#ffa94d"></i>开心</span>
-      <span><i class="dot" style="background:#74c0fc"></i>日常</span>
+  <div id="rightCol">
+    <div id="foot">识海 · 每两分钟呼吸一次<br><span id="upt">…</span></div>
+    <div class="panel" id="legend">
+      <div class="lg spinrow"><button id="spinBtn" type="button">自转 · 开</button></div>
+      <div class="lg"><i class="dot dh"></i>中心光核 · AI本体</div>
+      <div class="lg2">
+        <span><i class="dot" style="background:#ffa94d"></i>开心</span>
+        <span><i class="dot" style="background:#74c0fc"></i>日常</span>
+      </div>
+      <div class="lg2">
+        <span><i class="dot" style="background:#b197fc"></i>想念</span>
+        <span><i class="dot" style="background:#748ffc"></i>低落</span>
+      </div>
+      <div class="lg2">
+        <span><i class="dot" style="background:#ff6b6b"></i>生气</span>
+        <span><i class="dot" style="background:#ffe8a3"></i>心愿星</span>
+      </div>
+      <div class="lg"><i class="paperchip"></i>琥珀方块 · AI偷偷留的话</div>
+      <div class="lg"><i class="sp">✕</i>红色尖刺 · 未完成的约定</div>
+      <div class="lg note">白环 = 核心烙印（永不忘记）</div>
+      <div class="lg note">亮 = 新鲜 · 越重要越靠近她</div>
+      <div class="lg note">拖动旋转 · 滚轮/双指缩放 · 双击复位</div>
     </div>
-    <div class="lg2">
-      <span><i class="dot" style="background:#b197fc"></i>想念</span>
-      <span><i class="dot" style="background:#748ffc"></i>低落</span>
+    <div class="panel" id="tlBox">
+      <div class="tl-k">今 日 足 迹</div>
+      <div id="tlList"></div>
     </div>
-    <div class="lg2">
-      <span><i class="dot" style="background:#ff6b6b"></i>生气</span>
-      <span><i class="dot" style="background:#ffe8a3"></i>心愿星</span>
-    </div>
-    <div class="lg"><span><i class="paperchip"></i>琥珀方块 · AI偷偷留的话</span></div></div>
-    <div class="lg"><i class="sp">✕</i>红色尖刺 · 未完成的约定</div>
-    <div class="lg note">白环 = 核心烙印（永不忘记）</div>
-    <div class="lg note">亮 = 新鲜 · 越重要越靠近她</div>
-    <div class="lg note">拖动旋转 · 滚轮/双指缩放 · 双击复位</div>
   </div>
-  <div id="foot">识海 · 每两分钟呼吸一次<br><span id="upt">…</span></div>
 </div>
 <div id="tip"></div>
 <script>
 (function () {
   'use strict';
-  // ═══ 个性化：可在 <head> 里用 window.SHIHAI_CONFIG 覆盖 ═══
-  const CONFIG = Object.assign(
-    { aiName: "AI", ownerName: "主人", title: "识 海 · 星 云" },
-    window.SHIHAI_CONFIG || {}
-  );
-  document.getElementById('panelTitle').textContent = CONFIG.title;
-  document.getElementById('lgCore').textContent = '中心光核 · ' + CONFIG.aiName + '本体';
   const cv = document.getElementById('sea');
   const ctx = cv.getContext('2d', { alpha: false });
   const tip = document.getElementById('tip');
@@ -526,13 +584,13 @@
         const s = DATA ? DATA.self : null;
         tip.style.left = Math.min(W - 264, cx + 20) + 'px';
         tip.style.top = Math.max(8, cy - 40) + 'px';
-        html = '<b style="color:#6fd6e8">' + CONFIG.aiName + ' · 此刻</b><br>正在：' + (s ? s.activity : '…') + '<br><span style="color:rgba(223,233,245,.55);font-size:11px">心情：' + (s ? s.mood : '—') + '</span>';
+        html = '<b style="color:#6fd6e8">AI · 此刻</b><br>正在：' + (s ? s.activity : '…') + '<br><span style="color:rgba(223,233,245,.55);font-size:11px">心情：' + (s ? s.mood : '—') + '</span>';
       } else if (hover.paper) {
         tip.style.left = Math.min(W - 264, hover.sx + 16) + 'px';
         tip.style.top = Math.max(8, hover.sy - 14) + 'px';
-        html = '<b style="color:#ffd43b">' + CONFIG.aiName + '偷偷留的小纸条</b>'
+        html = '<b style="color:#ffd43b">AI偷偷留的小纸条</b>'
           + '<div style="margin:6px 0 2px;padding:8px 10px;background:#fff3bf;color:#5c4400;border-radius:6px;transform:rotate(-1.2deg);font-size:11px;line-height:1.6">'
-          + hover.noteText + '<div style="text-align:right;color:#a07c1f;margin-top:4px">— ' + CONFIG.aiName + ' 留</div></div>';
+          + hover.noteText + '<div style="text-align:right;color:#a07c1f;margin-top:4px">— AI 留</div></div>';
       } else {
         tip.style.left = Math.min(W - 260, hover.sx + 16) + 'px';
         tip.style.top = Math.max(8, hover.sy - 14) + 'px';
@@ -576,7 +634,7 @@
     for (const h of (DATA.history || [])) {
       const d = document.createElement('div');
       d.className = h.r === '他' ? 'him' : '';
-      d.textContent = (h.r === 'owner' ? CONFIG.ownerName + '：' : CONFIG.aiName + '：') + h.t;
+      d.textContent = (h.r === '他' ? '主人：' : 'AI：') + h.t;
       chat.appendChild(d);
     }
     moodTint = tintForMood(s.mood, s.pout);
@@ -713,6 +771,55 @@
 
   poll();
   setInterval(poll, 30000);
+
+  // ═══ 实时心跳：5 秒轮询 live.json，驱动 NOW 卡与今日足迹 ═══
+  let live = null;
+  function renderLive() {
+    const nows = (live && live.now) || {};
+    if (!nows.ts) return;
+    const age = Math.floor((Date.now() - nows.ts) / 1000);
+    const phase = String(nows.phase || '');
+    const settled = /^(idle|待机|回复主人|完工|淘到好片|推草稿)$/i.test(phase);
+    const idle = phase === 'idle' || phase === '待机' || (settled && age > 120);
+    const stale = !settled && !idle && age > 300;
+    const box = document.getElementById('nowBox');
+    document.getElementById('nowPhase').textContent = (phase === 'idle' || phase === '待机') ? '待机中' : phase;
+    document.getElementById('nowDetail').textContent = nows.detail || '';
+    document.getElementById('nowAge').textContent = (idle ? '上次心跳 ' : '心跳 ') + (age < 60 ? age + ' 秒前' : Math.round(age / 60) + ' 分钟前');
+    box.classList.toggle('idle', idle);
+    box.classList.toggle('warn', stale);
+    box.title = stale ? '超过 5 分钟没有新事件——可能在憋大招，也可能卡住了' : '';
+    const tlBox = document.getElementById('tlBox');
+    const tl = document.getElementById('tlList');
+    const recent = (live && live.recent) || [];
+    if (tlBox && tl) {
+      if (recent.length) {
+        tlBox.style.display = 'block';
+        tl.innerHTML = '';
+        for (const ev of recent.slice(0, 7)) {
+          const dt = new Date(ev.t);
+          const hm = String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0');
+          const d = document.createElement('div');
+          d.className = 'ev';
+          const b = document.createElement('b');
+          b.textContent = hm + ' ' + (ev.phase || '');
+          d.appendChild(b);
+          d.appendChild(document.createTextNode(' · ' + (ev.d || '')));
+          tl.appendChild(d);
+        }
+      } else {
+        tlBox.style.display = 'none';
+      }
+    }
+  }
+  async function pollLive() {
+    try {
+      const r = await fetch('data/live.json?_=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) { live = await r.json(); renderLive(); }
+    } catch {}
+  }
+  pollLive();
+  setInterval(pollLive, 5000);
 })();
 </script>
 </body>
