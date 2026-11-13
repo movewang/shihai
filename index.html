@@ -256,12 +256,27 @@
     return c;
   }
 
-  // 背景层预渲染：深蓝黑径向渐变 + 星云纹理 + 稀疏星光 + 星尘噪点 + 薄雾
-  // 固定种子，保证每帧不是随机闪烁；仅在尺寸/心情变化时重铺
+  // 背景层预渲染：深蓝黑径向渐变 + 絮状蓝紫星云雾丝 + 稀疏星光 + 银河尘埃 + 薄雾
+  // 固定种子，静态不闪烁；雾丝偏向画面边缘与中环空隙，中心星图区保持清晰
   let bgLayer = null, bgHue = -1, bgW = 0, bgH = 0;
   function hash2(x, y) {
     const v = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
     return v - Math.floor(v);
+  }
+  // 一团柔软的絮状雾：椭圆径向渐变，边缘自然消散，像极淡的宇宙棉花
+  function puff(c, x, y, rx, ry, rot, hue, a) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    c.scale(rx, ry);
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, 1);
+    g.addColorStop(0, 'hsla(' + hue + ', 58%, 64%, ' + a + ')');
+    g.addColorStop(0.42, 'hsla(' + hue + ', 56%, 52%, ' + (a * 0.48) + ')');
+    g.addColorStop(0.78, 'hsla(' + hue + ', 54%, 42%, ' + (a * 0.14) + ')');
+    g.addColorStop(1, 'hsla(' + hue + ', 52%, 36%, 0)');
+    c.fillStyle = g;
+    c.beginPath(); c.arc(0, 0, 1, 0, Math.PI * 2); c.fill();
+    c.restore();
   }
   function buildBg() {
     if (bgLayer && bgHue === moodTint.hue && bgW === W && bgH === H) return;
@@ -269,62 +284,132 @@
     bgLayer = document.createElement('canvas');
     bgLayer.width = W; bgLayer.height = H;
     const c = bgLayer.getContext('2d');
+    const cx = W / 2, cy = H / 2;
+    const R = Math.max(W, H);
 
-    // 深蓝黑径向底
-    const base = c.createRadialGradient(W * 0.5, H * 0.44, 0, W * 0.5, H * 0.44, Math.max(W, H) * 0.78);
-    base.addColorStop(0, '#0b1b34');
-    base.addColorStop(0.42, '#061024');
+    // 冷蓝黑径向底
+    const base = c.createRadialGradient(W * 0.5, H * 0.44, 0, W * 0.5, H * 0.44, R * 0.78);
+    base.addColorStop(0, '#0a1830');
+    base.addColorStop(0.42, '#050e20');
     base.addColorStop(1, '#01030a');
     c.fillStyle = base;
     c.fillRect(0, 0, W, H);
 
-    // 星云纹理：多层低透明径向云团，不用高对比
+    // 底层大尺度星云：极低对比，只定色调
     const clouds = [
-      { x: .30, y: .32, r: .34, h: moodTint.hue + 10, a: .075 },
-      { x: .70, y: .58, r: .40, h: moodTint.hue - 18, a: .055 },
-      { x: .52, y: .78, r: .30, h: 222, a: .045 },
-      { x: .18, y: .70, r: .26, h: 268, a: .035 }
+      { x: .28, y: .30, r: .36, h: moodTint.hue + 12, a: .055 },
+      { x: .74, y: .60, r: .42, h: moodTint.hue - 20, a: .045 },
+      { x: .50, y: .82, r: .32, h: 232, a: .036 },
+      { x: .16, y: .72, r: .28, h: 266, a: .030 }
     ];
     for (const cl of clouds) {
-      const gx = W * cl.x, gy = H * cl.y, gr = Math.max(W, H) * cl.r;
+      const gx = W * cl.x, gy = H * cl.y, gr = R * cl.r;
       const g = c.createRadialGradient(gx, gy, 0, gx, gy, gr);
-      g.addColorStop(0, 'hsla(' + cl.h + ', 65%, 52%, ' + cl.a + ')');
-      g.addColorStop(0.55, 'hsla(' + cl.h + ', 60%, 40%, ' + (cl.a * 0.45) + ')');
-      g.addColorStop(1, 'hsla(' + cl.h + ', 60%, 30%, 0)');
+      g.addColorStop(0, 'hsla(' + cl.h + ', 60%, 52%, ' + cl.a + ')');
+      g.addColorStop(0.55, 'hsla(' + cl.h + ', 58%, 40%, ' + (cl.a * 0.42) + ')');
+      g.addColorStop(1, 'hsla(' + cl.h + ', 56%, 32%, 0)');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
     }
 
-    // 稀疏星光：少量柔和小点
-    for (let i = 0; i < 90; i++) {
-      const sx = hash2(i, 3) * W;
-      const sy = hash2(i, 7) * H;
-      const a = 0.035 + hash2(i, 11) * 0.075;
-      const r = 0.6 + hash2(i, 13) * 1.1;
-      c.fillStyle = 'rgba(210,232,255,' + a.toFixed(3) + ')';
-      c.beginPath(); c.arc(sx, sy, r, 0, Math.PI * 2); c.fill();
+    // —— 絮状蓝紫雾丝：三层尺度，偏边缘/中环，中心自动淡出 ——
+    // 到中心的归一化距离：0=正中，1=画面边缘
+    const clearR = 0.34;   // 中心清晰区
+    const edgeR  = 0.62;   // 过了这里雾最浓
+    function fogWeight(nx, ny) {
+      const d = Math.hypot((nx - 0.5) * 2, (ny - 0.5) * 2);
+      if (d < clearR) return 0.04;                       // 星图核心几乎不落雾
+      if (d < edgeR) return 0.18 + (d - clearR) / (edgeR - clearR) * 0.55;
+      return 0.72 + Math.min(0.28, (d - edgeR) * 0.5);  // 边缘最浓
+    }
+    // 大絮团：柔软、半透明、蓝紫
+    for (let i = 0; i < 34; i++) {
+      const nx = hash2(i, 101), ny = hash2(i, 103);
+      const fw = fogWeight(nx, ny);
+      if (fw < 0.1) continue;
+      const hue = 218 + hash2(i, 107) * 46;              // 蓝 → 蓝紫
+      const rx = R * (0.10 + hash2(i, 109) * 0.15);
+      const ry = rx * (0.42 + hash2(i, 113) * 0.44);
+      const rot = hash2(i, 127) * Math.PI;
+      const a = (0.055 + hash2(i, 131) * 0.075) * fw;
+      puff(c, nx * W, ny * H, rx, ry, rot, hue, a);
+    }
+    // 中絮丝：更细长，像被拉开的棉絮 / 意识海雾气
+    for (let i = 0; i < 72; i++) {
+      const nx = hash2(i, 201), ny = hash2(i, 203);
+      const fw = fogWeight(nx, ny);
+      if (fw < 0.14) continue;
+      const hue = 210 + hash2(i, 207) * 58;
+      const rx = R * (0.045 + hash2(i, 209) * 0.085);
+      const ry = rx * (0.20 + hash2(i, 211) * 0.30);
+      const rot = hash2(i, 223) * Math.PI;
+      const a = (0.038 + hash2(i, 227) * 0.055) * fw;
+      puff(c, nx * W, ny * H, rx, ry, rot, hue, a);
+    }
+    // 细雾绒：极淡，只补层次，不形成形状
+    for (let i = 0; i < 92; i++) {
+      const nx = hash2(i, 301), ny = hash2(i, 303);
+      const fw = fogWeight(nx, ny);
+      if (fw < 0.2) continue;
+      const hue = 224 + hash2(i, 307) * 34;
+      const rx = R * (0.020 + hash2(i, 309) * 0.040);
+      const ry = rx * (0.5 + hash2(i, 311) * 0.4);
+      const rot = hash2(i, 313) * Math.PI;
+      puff(c, nx * W, ny * H, rx, ry, rot, hue, (0.022 + hash2(i, 317) * 0.032) * fw);
     }
 
-    // 星尘噪点：极淡，营造胶片颗粒感
-    const dustN = Math.min(2200, Math.round(W * H / 900));
+    // —— 低亮度银河尘埃：一条斜向极淡的带，单色冷蓝，不做彩色噪点 ——
+    const ga = -0.42;  // 倾斜角
+    for (let i = 0; i < 170; i++) {
+      const u = hash2(i, 401);                 // 沿带方向
+      const v = (hash2(i, 403) - 0.5);        // 偏离带中心
+      const px = cx + (u - 0.5) * R * 1.5 * Math.cos(ga) - v * R * 0.34 * Math.sin(ga);
+      const py = cy + (u - 0.5) * R * 1.5 * Math.sin(ga) + v * R * 0.34 * Math.cos(ga);
+      const d = Math.hypot((px - cx) / (W / 2), (py - cy) / (H / 2));
+      if (d < 0.34) continue;                 // 中心留白
+      const a = (0.010 + hash2(i, 407) * 0.018) * Math.max(0, 1 - Math.abs(v) * 1.6);
+      c.fillStyle = 'rgba(176,204,246,' + a.toFixed(4) + ')';
+      const r = 0.5 + hash2(i, 409) * 1.3;
+      c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill();
+    }
+
+    // 稀疏微弱星光：数量克制、亮度低
+    for (let i = 0; i < 78; i++) {
+      const sx = hash2(i, 3) * W, sy = hash2(i, 7) * H;
+      const d = Math.hypot((sx - cx) / (W / 2), (sy - cy) / (H / 2));
+      const a = (0.022 + hash2(i, 11) * 0.055) * (d < 0.30 ? 0.35 : 1);
+      const r = 0.5 + hash2(i, 13) * 0.9;
+      c.fillStyle = 'rgba(206,228,255,' + a.toFixed(4) + ')';
+      c.beginPath(); c.arc(sx, sy, r, 0, Math.PI * 2); c.fill();
+    }
+    // 更稀疏的几粒稍亮星（仍然很暗，不抢节点）
+    for (let i = 0; i < 14; i++) {
+      const sx = hash2(i, 501) * W, sy = hash2(i, 503) * H;
+      const d = Math.hypot((sx - cx) / (W / 2), (sy - cy) / (H / 2));
+      if (d < 0.40) continue;
+      c.fillStyle = 'rgba(220,236,255,' + (0.05 + hash2(i, 507) * 0.05).toFixed(4) + ')';
+      c.beginPath(); c.arc(sx, sy, 0.7 + hash2(i, 509) * 0.7, 0, Math.PI * 2); c.fill();
+    }
+
+    // 星尘噪点：单色、极淡，避免彩色噪点
+    const dustN = Math.min(2000, Math.round(W * H / 1000));
     for (let i = 0; i < dustN; i++) {
-      const dx = hash2(i, 23) * W;
-      const dy = hash2(i, 29) * H;
-      c.fillStyle = 'rgba(190,215,245,' + (0.008 + hash2(i, 31) * 0.016).toFixed(3) + ')';
+      const dx = hash2(i, 23) * W, dy = hash2(i, 29) * H;
+      c.fillStyle = 'rgba(186,210,242,' + (0.006 + hash2(i, 31) * 0.012).toFixed(4) + ')';
       c.fillRect(dx, dy, 1, 1);
     }
 
-    // 轻微薄雾：中心柔光 + 四周暗角
-    const mist = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.10, W / 2, H / 2, Math.min(W, H) * 0.70);
-    mist.addColorStop(0, 'rgba(120,180,230,.035)');
-    mist.addColorStop(0.58, 'rgba(80,130,200,.018)');
+    // 薄雾 + 暗角：中心微亮保持可读，边缘沉下去
+    const mist = c.createRadialGradient(cx, cy, R * 0.08, cx, cy, R * 0.72);
+    mist.addColorStop(0, 'rgba(130,180,235,.028)');
+    mist.addColorStop(0.58, 'rgba(88,132,198,.014)');
     mist.addColorStop(1, 'rgba(0,0,0,0)');
     c.fillStyle = mist;
     c.fillRect(0, 0, W, H);
 
-    const vign = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.75);
+    const vign = c.createRadialGradient(cx, cy, R * 0.24, cx, cy, R * 0.76);
     vign.addColorStop(0, 'rgba(0,0,0,0)');
-    vign.addColorStop(1, 'rgba(0,2,8,.34)');
+    vign.addColorStop(1, 'rgba(0,2,8,.38)');
     c.fillStyle = vign;
     c.fillRect(0, 0, W, H);
   }
@@ -523,6 +608,10 @@
       ctx.moveTo(n.sx, n.sy);
       ctx.quadraticCurveTo(mxp, myp, cx, cy);
       ctx.strokeStyle = n.warm ? PAL.filaWarm : PAL.filaCool;
+      // 极淡发光：更宽、更透的一层垫在下面，主线仍保持锐利
+      ctx.globalAlpha = alpha * (n.warm ? 0.14 : 0.18);
+      ctx.lineWidth = lineW * (n.warm ? 2.6 : 3.2);
+      ctx.stroke();
       ctx.globalAlpha = alpha;
       ctx.lineWidth = lineW;
       ctx.stroke();
@@ -615,8 +704,8 @@
         ctx.globalAlpha = 0.16 + 0.14 * halo;
         ctx.drawImage(spr, n.sx - hgr, n.sy - hgr, hgr * 2, hgr * 2);
       }
-      const gr = size * (n.warm ? 3.1 : 2.6);
-      ctx.globalAlpha = clamp(alpha * (n.warm ? 1.0 : 0.70), 0, 1);
+      const gr = size * (n.warm ? 3.5 : 2.6);
+      ctx.globalAlpha = clamp(alpha * (n.warm ? 0.96 : 0.66), 0, 1);
       ctx.drawImage(spr, n.sx - gr, n.sy - gr, gr * 2, gr * 2);
 
       ctx.globalAlpha = clamp(alpha, 0, 1);
