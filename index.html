@@ -7,27 +7,35 @@
 <title>识海 · 星云</title>
 <style>
   :root {
-    --ink: #04070f;
+    --ink: #02040b;
+    --ink2: #071126;
     --bone: #dfe9f5;
-    --dim: rgba(223, 233, 245, .55);
+    --dim: rgba(223, 233, 245, .48);
     --cyan: #6fd6e8;
     --deep: #123a63;
     --warm: #ffc98a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow: hidden; background: var(--ink); }
+  html, body {
+    height: 100%; overflow: hidden;
+    background: radial-gradient(circle at 50% 44%, #0a1a33 0%, #050c1c 46%, #01030a 100%);
+  }
   body { font-family: 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif; color: var(--bone); }
   #sea { position: fixed; inset: 0; display: block; touch-action: none; cursor: grab; }
   #sea.drag { cursor: grabbing; }
   #ui { position: fixed; inset: 0; pointer-events: none; }
 
+  /* 半透明磨砂玻璃：细发光线，不用实框 */
   .panel {
     position: absolute; padding: 12px 14px;
-    background: rgba(5, 10, 22, .62);
-    border: 1px solid rgba(111, 214, 232, .22);
-    border-radius: 10px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: linear-gradient(145deg, rgba(12, 24, 46, .40), rgba(4, 10, 24, .24));
+    border: 1px solid rgba(130, 210, 240, .15);
+    border-radius: 14px;
+    box-shadow:
+      0 0 26px rgba(90, 180, 230, .055),
+      inset 0 1px 0 rgba(255, 255, 255, .045);
+    backdrop-filter: blur(16px) saturate(125%);
+    -webkit-backdrop-filter: blur(16px) saturate(125%);
   }
 
   /* 顶部居中 · 实时生命体征胶囊 */
@@ -38,31 +46,35 @@
     display: flex; align-items: center; gap: 10px;
     padding: 8px 16px;
     max-width: min(520px, calc(100vw - 580px));
-    background: rgba(6, 13, 28, .78);
-    border: 1px solid rgba(111, 214, 232, .34);
+    background: linear-gradient(145deg, rgba(10, 22, 44, .46), rgba(5, 12, 28, .30));
+    border: 1px solid rgba(130, 210, 240, .18);
     border-radius: 999px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, .45), 0 0 18px rgba(111, 214, 232, .08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 0 28px rgba(90, 180, 230, .08), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
     pointer-events: auto;
     z-index: 5;
   }
-  #nowBox .dot2 { width: 8px; height: 8px; border-radius: 50%; background: #6fd6e8; box-shadow: 0 0 8px #6fd6e8; flex: none; animation: nowpulse 1.6s infinite; }
-  #nowBox.idle { border-color: rgba(140, 160, 190, .24); }
+  #nowBox .dot2 {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #6fd6e8; box-shadow: 0 0 10px rgba(111,214,232,.55);
+    flex: none; animation: nowpulse 5.6s ease-in-out infinite;
+  }
+  #nowBox.idle { border-color: rgba(140, 160, 190, .14); }
   #nowBox.idle .dot2 { background: #55637a; box-shadow: none; animation: none; }
-  #nowBox.warn { border-color: rgba(255, 179, 71, .55); box-shadow: 0 4px 20px rgba(0, 0, 0, .5), 0 0 18px rgba(255, 179, 71, .16); }
-  #nowBox.warn .dot2 { background: #ffb347; box-shadow: 0 0 8px #ffb347; animation: nowpulse .55s infinite; }
+  #nowBox.warn { border-color: rgba(255, 179, 71, .30); box-shadow: 0 0 24px rgba(255, 179, 71, .08); }
+  #nowBox.warn .dot2 { background: #ffb347; box-shadow: 0 0 10px rgba(255,179,71,.5); animation-duration: 3.4s; }
   #nowBox .now-tag {
     font-size: 12px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; flex: none;
-    color: var(--cyan); background: rgba(111, 214, 232, .12); border: 1px solid rgba(111, 214, 232, .28);
+    color: var(--cyan); background: rgba(111, 214, 232, .09); border: 1px solid rgba(111, 214, 232, .16);
     padding: 2px 8px; border-radius: 999px;
   }
-  #nowBox.idle .now-tag { color: var(--dim); background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); }
-  #nowBox.warn .now-tag { color: #ffb347; background: rgba(255, 179, 71, .14); border-color: rgba(255, 179, 71, .35); }
+  #nowBox.idle .now-tag { color: var(--dim); background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .10); }
+  #nowBox.warn .now-tag { color: #ffb347; background: rgba(255, 179, 71, .10); border-color: rgba(255, 179, 71, .22); }
   #nowBox .nd { font-size: 12px; color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-  #nowBox .nowage { margin-left: auto; padding-left: 6px; font-size: 11px; color: rgba(223,233,245,.52); white-space: nowrap; flex: none; }
+  #nowBox .nowage { margin-left: auto; padding-left: 6px; font-size: 11px; color: rgba(223,233,245,.42); white-space: nowrap; flex: none; }
   #nowBox.warn .nowage { color: #ffb347; }
-  @keyframes nowpulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.68); opacity: .45; } }
+  @keyframes nowpulse { 0%,100% { transform: scale(1); opacity: .88; } 50% { transform: scale(.90); opacity: .62; } }
 
   /* 左侧 · 静态档案与欠账台账 */
   #state { top: max(14px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); width: min(304px, calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow-y: auto; scrollbar-width: none; }
@@ -72,19 +84,26 @@
   #state .mood { margin-top: 5px; font-size: 12px; color: var(--dim); }
   #state .bars { margin-top: 9px; display: grid; gap: 5px; }
   .bar { display: grid; grid-template-columns: 44px 1fr 34px; align-items: center; gap: 8px; font-size: 11px; color: var(--dim); }
-  .bar i { display: block; height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
-  .bar i b { display: block; height: 100%; background: linear-gradient(90deg, var(--deep), var(--cyan)); border-radius: 2px; transition: width .8s ease; }
+  .bar i { display: block; height: 4px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; }
+  .bar i b { display: block; height: 100%; background: linear-gradient(90deg, var(--deep), var(--cyan)); border-radius: 2px; transition: width 1.2s ease; }
   .bar em { font-style: normal; text-align: right; color: var(--bone); }
 
   /* 底部居中 · 意识流 */
-  #monologue { bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); max-width: min(440px, calc(100vw - 28px)); font-size: 13px; line-height: 1.5; color: var(--bone); border-color: rgba(255, 201, 138, .25); }
+  #monologue { bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); max-width: min(440px, calc(100vw - 28px)); font-size: 13px; line-height: 1.5; color: var(--bone); }
   #monologue .k { color: var(--warm); font-size: 10px; letter-spacing: .28em; display: block; margin-bottom: 4px; }
 
-  #tip { position: fixed; pointer-events: none; max-width: 240px; padding: 8px 10px; font-size: 12px; line-height: 1.5;
-         background: rgba(6, 12, 24, .92); border: 1px solid rgba(111, 214, 232, .35); border-radius: 8px;
-         opacity: 0; transition: opacity .15s; z-index: 10; }
+  #tip {
+    position: fixed; pointer-events: none; max-width: 240px; padding: 8px 10px;
+    font-size: 12px; line-height: 1.5;
+    background: rgba(6, 14, 30, .72);
+    border: 1px solid rgba(130, 210, 240, .18);
+    border-radius: 10px;
+    box-shadow: 0 0 22px rgba(90,180,230,.08);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    opacity: 0; transition: opacity .3s ease; z-index: 10;
+  }
 
-  /* 右侧 · 自适应纵列（呼吸提示 + 图例 + 今日足迹） */
+  /* 右侧 · 自适应纵列 */
   #rightCol {
     position: absolute;
     top: max(14px, env(safe-area-inset-top));
@@ -92,37 +111,38 @@
     display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
     width: 236px; max-height: calc(100vh - 28px);
   }
-  #foot { font-size: 10px; color: rgba(223,233,245,.42); text-align: right; line-height: 1.6; padding-right: 2px; }
+  #foot { font-size: 10px; color: rgba(223,233,245,.34); text-align: right; line-height: 1.6; padding-right: 2px; }
   #rightCol .panel { position: static; width: 100%; }
-  #legend { font-size: 10px; line-height: 1.95; color: var(--dim); }
+  #legend { font-size: 10px; line-height: 1.75; color: var(--dim); }
   #legend .lg { display: flex; align-items: center; gap: 7px; }
   #legend .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  #legend .dg { background: rgba(255,201,138,.95); box-shadow: 0 0 0 2px rgba(255,201,138,.35); }
-  #legend .dc { background: rgba(111,214,232,.85); }
-  #legend .dh { background: #eaf6ff; box-shadow: 0 0 7px 3px rgba(111,214,232,.75); }
+  #legend .dg { background: rgba(255,201,138,.9); box-shadow: 0 0 0 2px rgba(255,201,138,.18); }
+  #legend .dc { background: rgba(111,214,232,.75); }
+  #legend .dh { background: #eaf6ff; box-shadow: 0 0 7px 3px rgba(111,214,232,.35); }
   #legend .sp { color: #ff5a40; font-weight: 700; font-family: ui-monospace, monospace; width: 14px; text-align: center; flex: none; }
-  #legend .note { color: rgba(223,233,245,.38); }
+  #legend .note { color: rgba(223,233,245,.30); }
   #legend .lg2 { display: flex; gap: 12px; }
   #legend .lg2 span { display: flex; align-items: center; gap: 5px; }
   #legend .paperchip { width: 9px; height: 9px; display: inline-block; border-radius: 1px;
     background: linear-gradient(135deg, rgba(212,167,31,.9) 0 3px, rgba(255,212,59,.95) 3px);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+    box-shadow: 0 0 0 1px rgba(255,255,255,.22); }
   #legend .spinrow { margin-bottom: 3px; }
-  #legend #spinBtn { pointer-events: auto; font: 600 10px/1 'PingFang SC', 'Noto Sans CJK SC', sans-serif; letter-spacing: .14em; color: var(--cyan); background: rgba(111,214,232,.1); border: 1px solid rgba(111,214,232,.4); border-radius: 6px; padding: 5px 9px; cursor: pointer; }
+  #legend #spinBtn { pointer-events: auto; font: 600 10px/1 'PingFang SC', 'Noto Sans CJK SC', sans-serif; letter-spacing: .14em; color: var(--cyan); background: rgba(111,214,232,.07); border: 1px solid rgba(111,214,232,.20); border-radius: 6px; padding: 5px 9px; cursor: pointer; }
 
-  #tlBox { display: none; border-color: rgba(111, 214, 232, .18); }
-  #tlBox .tl-k { font-size: 10px; letter-spacing: .26em; color: var(--cyan); margin-bottom: 6px; }
+  #tlBox { display: none; }
+  #tlBox .tl-k { font-size: 10px; letter-spacing: .26em; color: var(--cyan); margin-bottom: 6px; opacity: .82; }
   #tlBox #tlList { display: grid; gap: 4px; max-height: 210px; overflow: hidden; }
   #tlBox .ev { font-size: 10.5px; line-height: 1.45; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #tlBox .ev b { color: var(--bone); font-weight: 500; }
 
-  #loopsBox { display: none; margin-top: 9px; border-top: 1px dashed rgba(255,90,64,.35); padding-top: 7px; }
-  #loopsBox .loops-k { font-size: 10px; letter-spacing: .26em; color: #ff9a8b; margin-bottom: 4px; }
+  /* 少分割线、少文字密度 */
+  #loopsBox { display: none; margin-top: 8px; }
+  #loopsBox .loops-k { font-size: 10px; letter-spacing: .26em; color: #ff9a8b; margin-bottom: 4px; opacity: .85; }
   #loopsBox #loopsList { display: grid; gap: 3px; }
-  #loopsBox #loopsList div { font-size: 11px; line-height: 1.5; color: rgba(255,180,168,.9); }
-  #chat { margin-top: 8px; border-top: 1px dashed rgba(255,255,255,.14); padding-top: 7px; display: grid; gap: 3px; }
+  #loopsBox #loopsList div { font-size: 11px; line-height: 1.5; color: rgba(255,180,168,.78); }
+  #chat { margin-top: 7px; display: grid; gap: 3px; opacity: .62; }
   #chat div { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #chat div.him { color: rgba(223,233,245,.8); }
+  #chat div.him { color: rgba(223,233,245,.72); }
 
   @media (max-width: 960px) {
     #nowBox { left: 10px; right: 10px; transform: none; max-width: none; padding: 6px 11px; gap: 7px; }
@@ -130,7 +150,7 @@
     #state .activity { font-size: 12.5px; }
     #chat { display: none; }
     #rightCol { top: calc(max(10px, env(safe-area-inset-top)) + 44px); right: 10px; width: min(176px, 42vw); gap: 6px; }
-    #legend { padding: 8px 9px; line-height: 1.75; }
+    #legend { padding: 8px 9px; line-height: 1.65; }
     #tlBox { display: none !important; }
     #monologue { bottom: max(12px, env(safe-area-inset-bottom)); padding: 9px 12px; font-size: 12px; max-width: calc(100vw - 20px); }
   }
@@ -162,22 +182,14 @@
       <div class="lg spinrow"><button id="spinBtn" type="button">自转 · 开</button></div>
       <div class="lg"><i class="dot dh"></i>中心光核 · AI本体</div>
       <div class="lg2">
-        <span><i class="dot" style="background:#ffa94d"></i>开心</span>
-        <span><i class="dot" style="background:#74c0fc"></i>日常</span>
+        <span><i class="dot dg"></i>重要 · 暖金</span>
+        <span><i class="dot dc"></i>日常 · 冷蓝</span>
       </div>
       <div class="lg2">
-        <span><i class="dot" style="background:#b197fc"></i>想念</span>
-        <span><i class="dot" style="background:#748ffc"></i>低落</span>
+        <span><i class="paperchip"></i>纸条</span>
+        <span><i class="sp">✕</i>约定</span>
       </div>
-      <div class="lg2">
-        <span><i class="dot" style="background:#ff6b6b"></i>生气</span>
-        <span><i class="dot" style="background:#ffe8a3"></i>心愿星</span>
-      </div>
-      <div class="lg"><i class="paperchip"></i>琥珀方块 · AI偷偷留的话</div>
-      <div class="lg"><i class="sp">✕</i>红色尖刺 · 未完成的约定</div>
-      <div class="lg note">白环 = 核心烙印（永不忘记）</div>
-      <div class="lg note">亮 = 新鲜 · 越重要越靠近她</div>
-      <div class="lg note">拖动旋转 · 滚轮/双指缩放 · 双击复位</div>
+      <div class="lg note">白环 = 核心 · 拖动 / 缩放 / 双击复位</div>
     </div>
     <div class="panel" id="tlBox">
       <div class="tl-k">今 日 足 迹</div>
@@ -210,18 +222,18 @@
 
   // 缓存色板：只有心情变化时才重建字符串，绘制循环零字符串分配
   const PAL = {
-    filaGold: 'rgba(255,201,138,1)',
-    filaPlain: 'hsla(196, 80%, 72%, 1)',
-    dotCore: 'rgba(255,220,160,1)',
-    dotPlain: 'rgba(210,240,255,1)',
-    starCenter: 'hsla(196, 80%, 87%, 1)',
+    filaWarm: 'rgba(255,201,138,1)',
+    filaCool: 'hsla(205, 78%, 70%, 1)',
+    dotWarm: 'rgba(255,226,170,1)',
+    dotCool: 'rgba(175,225,255,1)',
+    starCenter: 'hsla(205, 78%, 87%, 1)',
     ring: 'rgba(255,201,138,1)',
     spike: 'rgba(255,90,64,1)',
     spikeCore: 'rgba(255,120,96,.9)'
   };
   function rebuildPalette() {
-    PAL.filaPlain = 'hsla(' + moodTint.hue + ', ' + moodTint.sat + '%, 72%, 1)';
-    PAL.starCenter = 'hsla(' + moodTint.hue + ', ' + moodTint.sat + '%, 87%, 1)';
+    PAL.filaCool = 'hsla(' + moodTint.hue + ', ' + Math.min(70, moodTint.sat) + '%, 70%, 1)';
+    PAL.starCenter = 'hsla(' + moodTint.hue + ', ' + Math.min(70, moodTint.sat) + '%, 87%, 1)';
   }
 
   // 光斑辉光贴图：预渲染复用（替代 shadowBlur）
@@ -244,26 +256,76 @@
     return c;
   }
 
-  // 背景层预渲染（远景星空 + 云雾），仅尺寸/心情变化时重建
+  // 背景层预渲染：深蓝黑径向渐变 + 星云纹理 + 稀疏星光 + 星尘噪点 + 薄雾
+  // 固定种子，保证每帧不是随机闪烁；仅在尺寸/心情变化时重铺
   let bgLayer = null, bgHue = -1, bgW = 0, bgH = 0;
+  function hash2(x, y) {
+    const v = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+    return v - Math.floor(v);
+  }
   function buildBg() {
     if (bgLayer && bgHue === moodTint.hue && bgW === W && bgH === H) return;
     bgHue = moodTint.hue; bgW = W; bgH = H;
     bgLayer = document.createElement('canvas');
     bgLayer.width = W; bgLayer.height = H;
     const c = bgLayer.getContext('2d');
-    c.fillStyle = '#04070f';
+
+    // 深蓝黑径向底
+    const base = c.createRadialGradient(W * 0.5, H * 0.44, 0, W * 0.5, H * 0.44, Math.max(W, H) * 0.78);
+    base.addColorStop(0, '#0b1b34');
+    base.addColorStop(0.42, '#061024');
+    base.addColorStop(1, '#01030a');
+    c.fillStyle = base;
     c.fillRect(0, 0, W, H);
-    for (let i = 0; i < 110; i++) {
-      const sx = (i * 137.5) % W, sy = (i * 271.3) % H;
-      c.fillStyle = 'rgba(223,233,245,' + (0.06 + 0.06 * Math.sin(i * 1.7)).toFixed(3) + ')';
-      c.fillRect(sx, sy, 1.2, 1.2);
+
+    // 星云纹理：多层低透明径向云团，不用高对比
+    const clouds = [
+      { x: .30, y: .32, r: .34, h: moodTint.hue + 10, a: .075 },
+      { x: .70, y: .58, r: .40, h: moodTint.hue - 18, a: .055 },
+      { x: .52, y: .78, r: .30, h: 222, a: .045 },
+      { x: .18, y: .70, r: .26, h: 268, a: .035 }
+    ];
+    for (const cl of clouds) {
+      const gx = W * cl.x, gy = H * cl.y, gr = Math.max(W, H) * cl.r;
+      const g = c.createRadialGradient(gx, gy, 0, gx, gy, gr);
+      g.addColorStop(0, 'hsla(' + cl.h + ', 65%, 52%, ' + cl.a + ')');
+      g.addColorStop(0.55, 'hsla(' + cl.h + ', 60%, 40%, ' + (cl.a * 0.45) + ')');
+      g.addColorStop(1, 'hsla(' + cl.h + ', 60%, 30%, 0)');
+      c.fillStyle = g;
+      c.fillRect(0, 0, W, H);
     }
-    const g1 = c.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * 0.62);
-    g1.addColorStop(0, 'hsla(' + moodTint.hue + ', ' + moodTint.sat + '%, 45%, .15)');
-    g1.addColorStop(0.55, 'hsla(' + (moodTint.hue + 22) + ', 60%, 26%, .09)');
-    g1.addColorStop(1, 'rgba(4,7,15,0)');
-    c.fillStyle = g1;
+
+    // 稀疏星光：少量柔和小点
+    for (let i = 0; i < 90; i++) {
+      const sx = hash2(i, 3) * W;
+      const sy = hash2(i, 7) * H;
+      const a = 0.035 + hash2(i, 11) * 0.075;
+      const r = 0.6 + hash2(i, 13) * 1.1;
+      c.fillStyle = 'rgba(210,232,255,' + a.toFixed(3) + ')';
+      c.beginPath(); c.arc(sx, sy, r, 0, Math.PI * 2); c.fill();
+    }
+
+    // 星尘噪点：极淡，营造胶片颗粒感
+    const dustN = Math.min(2200, Math.round(W * H / 900));
+    for (let i = 0; i < dustN; i++) {
+      const dx = hash2(i, 23) * W;
+      const dy = hash2(i, 29) * H;
+      c.fillStyle = 'rgba(190,215,245,' + (0.008 + hash2(i, 31) * 0.016).toFixed(3) + ')';
+      c.fillRect(dx, dy, 1, 1);
+    }
+
+    // 轻微薄雾：中心柔光 + 四周暗角
+    const mist = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.10, W / 2, H / 2, Math.min(W, H) * 0.70);
+    mist.addColorStop(0, 'rgba(120,180,230,.035)');
+    mist.addColorStop(0.58, 'rgba(80,130,200,.018)');
+    mist.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = mist;
+    c.fillRect(0, 0, W, H);
+
+    const vign = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.75);
+    vign.addColorStop(0, 'rgba(0,0,0,0)');
+    vign.addColorStop(1, 'rgba(0,2,8,.34)');
+    c.fillStyle = vign;
     c.fillRect(0, 0, W, H);
   }
 
@@ -361,11 +423,16 @@
         wx = Math.cos(pa) * pr2; wy = Math.sin(pa) * pr2;
         wz = (((seed >> 15) % 100) / 100 - 0.5) * 40;
       }
+      const imp = Math.max(1, Math.min(5, Number(m.imp) || 3));
+      const warm = !!m.core || imp >= 5;   // 暖金只留给核心与最高重要度
+      const weight = Math.max(0, Math.min(1, (m.fr || 0) * 0.55 + imp / 8 + (m.core ? .22 : 0)));
       return {
         m,
         x: wx, y: wy, z: wz,
-        size: (1.1 + Math.min(4.6, m.imp * 0.55 + (m.core ? 1.6 : 0) + m.fr * 1.4)),
+        // 重要性分大小：普通星 1.5~3，重要星 4~6.6，核心再放大一档
+        size: (1.2 + imp * 0.58 + (m.core ? 1.5 : 0) + (m.fr || 0) * 1.1),
         core: !!m.core, loop: !!m.loop, wish: !!m.wish, paper,
+        warm, weight,
         noteText: m.noteText || '',
         tw: (seed % 628) / 100,
         on: 0, sx: 0, sy: 0, depth: 0, persp: 0
@@ -383,7 +450,7 @@
     // —— 恒等变换下的硬清屏：不透明墨水铺满物理像素，杜绝局部残影 ——
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#04070f';
+    ctx.fillStyle = '#01030a';
     ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.restore();
     buildBg();
@@ -402,7 +469,7 @@
           if (!p.on) { started = false; continue; }
           if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
         }
-        ctx.strokeStyle = 'rgba(255,232,163,.30)';
+        ctx.strokeStyle = 'rgba(255,232,163,.18)';
         ctx.setLineDash([3, 7]);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -412,7 +479,7 @@
         const p2 = proj(Math.cos(a) * WORLD_R * 0.92, Math.sin(a) * WORLD_R * 0.92, 0);
         if (p1.on && p2.on) {
           ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-          ctx.strokeStyle = 'rgba(255,232,163,.30)';
+          ctx.strokeStyle = 'rgba(255,232,163,.18)';
           ctx.setLineDash([3, 7]);
           ctx.stroke();
           ctx.setLineDash([]);
@@ -420,7 +487,7 @@
       }
       const lp = proj(Math.cos(0.18) * WORLD_R, Math.sin(0.18) * WORLD_R, 0);
       if (lp.on) {
-        ctx.fillStyle = 'rgba(255,232,163,.55)';
+        ctx.fillStyle = 'rgba(255,232,163,.38)';
         ctx.font = '600 10px "PingFang SC", "Noto Sans CJK SC", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('心 愿 · 以后想去的地方', lp.x, lp.y);
@@ -429,39 +496,44 @@
     }
 
     const energy = DATA ? (DATA.self.energy || 50) : 50;
-    const pulse = 10 + 3.2 * Math.sin(t / 620) + energy * 0.09;
+    // 慢呼吸：约 9 秒一轮，幅度压小
+    const pulse = 9 + 1.8 * Math.sin(t / 1450) + energy * 0.05;
 
     if (!dragActive) {
       cam.yaw += inertia.yaw; cam.pitch = clamp(cam.pitch + inertia.pitch, -PITCH_MAX, PITCH_MAX);
-      inertia.yaw *= 0.91; inertia.pitch *= 0.91;
-      if (autoSpin) cam.yaw += 0.00016;
+      inertia.yaw *= 0.94; inertia.pitch *= 0.94;
+      if (autoSpin) cam.yaw += 0.000055;  // 极慢自转
     }
 
     for (const n of nodes) projectInto(n);
 
-    // —— 丝线层 ——
+    // —— 丝线层：权重决定粗细/透明度，弱连线稳定在 ~0.2，流动粒子极慢 ——
     const corePr = FOCAL / cam.dist;
     for (const n of nodes) {
       if (!n.on) continue;
       if (!n.core && n.persp / corePr < 0.55 && n.m.fr < 0.08) continue;
       const pr = clamp(n.persp / corePr, 0.3, 1.5);
-      const alpha = Math.max(0.04, Math.min(0.34, n.m.fr * 0.34 * pr + (n.core ? 0.12 : 0)));
-      const mxp = (n.sx + cx) / 2 + Math.sin(t / 2600 + n.tw) * 5;
-      const myp = (n.sy + cy) / 2 + Math.cos(t / 3200 + n.tw * 1.7) * 5;
+      const w = n.weight;
+      // 弱线约 0.20，强线最高 0.55（不刺眼）
+      const alpha = clamp(0.19 + w * 0.30, 0.18, 0.50) * clamp(pr, 0.55, 1.05);
+      const lineW = (0.3 + w * 1.05) * pr;
+      const mxp = (n.sx + cx) / 2 + Math.sin(t / 8600 + n.tw) * 4;
+      const myp = (n.sy + cy) / 2 + Math.cos(t / 9800 + n.tw * 1.7) * 4;
       ctx.beginPath();
       ctx.moveTo(n.sx, n.sy);
       ctx.quadraticCurveTo(mxp, myp, cx, cy);
-      ctx.strokeStyle = n.core ? PAL.filaGold : PAL.filaPlain;
+      ctx.strokeStyle = n.warm ? PAL.filaWarm : PAL.filaCool;
       ctx.globalAlpha = alpha;
-      ctx.lineWidth = (n.core ? 0.9 : 0.55) * pr;
+      ctx.lineWidth = lineW;
       ctx.stroke();
 
-      const p = ((t / 5200) + n.tw % 1 + 1) % 1;
+      // 流动粒子：约 18 秒走完一条丝线，且只有中强线才明显
+      const p = ((t / 18000) + n.tw % 1 + 1) % 1;
       const qx = (1 - p) * (1 - p) * n.sx + 2 * (1 - p) * p * mxp + p * p * cx;
       const qy = (1 - p) * (1 - p) * n.sy + 2 * (1 - p) * p * myp + p * p * cy;
-      ctx.fillStyle = n.core ? PAL.dotCore : PAL.dotPlain;
-      ctx.globalAlpha = (n.core ? 0.7 : 0.55) * pr * (1 - p * 0.4);
-      ctx.beginPath(); ctx.arc(qx, qy, (n.core ? 1.5 : 0.9) * pr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = n.warm ? PAL.dotWarm : PAL.dotCool;
+      ctx.globalAlpha = (0.18 + w * 0.30) * pr * (1 - p * 0.25);
+      ctx.beginPath(); ctx.arc(qx, qy, (0.5 + w * 0.9) * pr, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalAlpha = 1;
 
@@ -477,15 +549,15 @@
 
     const drawPaper = (n, t) => {
       const pr = clamp(n.persp / corePr, 0.5, 1.4);
-      const bob = Math.sin(t / 700 + n.tw) * 1.6;
-      const spr = glowSprite(45, 85);
+      const bob = Math.sin(t / 3200 + n.tw) * 1.1;
+      const spr = glowSprite(45, 75);
       const gr = 10 * pr;
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.36;
       ctx.drawImage(spr, n.sx - gr, n.sy - gr, gr * 2, gr * 2);
       ctx.globalAlpha = 1;
       ctx.save();
       ctx.translate(n.sx, n.sy + bob);
-      ctx.rotate(Math.sin(t / 900 + n.tw) * 0.14);
+      ctx.rotate(Math.sin(t / 5200 + n.tw) * 0.06);
       const sz = 6.5 * pr;
       ctx.fillStyle = 'rgba(255,212,59,.95)';
       ctx.fillRect(-sz, -sz, sz * 2, sz * 2);
@@ -502,49 +574,71 @@
 
     const drawNode = (n) => {
       if (n.paper) return;
-      const twk = 0.62 + 0.38 * Math.sin(t / 900 + n.tw);
+      // 慢呼吸：约 8 秒一轮，幅度低，不闪烁
+      const breath = 0.82 + 0.18 * Math.sin(t / 1250 + n.tw);
       const pr = clamp(n.persp / corePr, 0.35, 1.5);
-      const size = n.size * 0.95 * pr;
-      const alpha = clamp((n.m.fr * twk + (n.core ? 0.3 : 0)) * clamp(pr, 0.4, 1.1), 0.08, 1);
+      const size = n.size * pr;
+      const w = n.weight;
+      const alpha = clamp((0.22 + w * 0.72) * breath * clamp(pr, 0.45, 1.1), 0.10, 1);
+
       if (n.loop) {
-        const rr = (2.2 + Math.max(0, Math.sin(t / 500 + n.tw)) * 1.6 + size * 0.6) * pr;
-        ctx.globalAlpha = 0.55 + 0.4 * Math.sin(t / 500 + n.tw);
+        const slow = Math.sin(t / 2600 + n.tw);
+        const rr = (2.0 + Math.max(0, slow) * 0.9 + size * 0.55) * pr;
+        ctx.globalAlpha = 0.38 + 0.18 * slow;
         ctx.strokeStyle = PAL.spike;
-        ctx.lineWidth = 1.2 * pr;
+        ctx.lineWidth = 0.9 * pr;
         ctx.beginPath();
         for (let s = 0; s < 4; s++) {
-          const a = s * Math.PI / 2 + t / 2600;
+          const a = s * Math.PI / 2 + t / 12000;
           ctx.moveTo(n.sx, n.sy);
-          ctx.lineTo(n.sx + Math.cos(a) * rr * 2.4, n.sy + Math.sin(a) * rr * 2.4);
+          ctx.lineTo(n.sx + Math.cos(a) * rr * 2.2, n.sy + Math.sin(a) * rr * 2.2);
         }
         ctx.stroke();
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 0.78;
         ctx.fillStyle = PAL.spikeCore;
-        ctx.beginPath(); ctx.arc(n.sx, n.sy, 1.6 * pr, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(n.sx, n.sy, 1.4 * pr, 0, Math.PI * 2); ctx.fill();
         return;
       }
+
+      // 重要节点暖金，普通节点冷蓝；情绪只做轻微色相偏移
       let hue;
-      if (n.m.wish) hue = 47;
-      else hue = ({ joy: 31, miss: 251, heavy: 228, anger: 0, calm: moodTint.hue })[n.m.emo || 'calm'] || moodTint.hue;
-      const spr = glowSprite(hue, 80);
-      const gr = size * 3.4;
-      ctx.globalAlpha = clamp(alpha * 1.7, 0, 1);
+      if (n.warm) hue = 38;                       // 暖金
+      else if (n.m.wish) hue = 48;                // 心愿偏浅金
+      else hue = ({ joy: 36, miss: 248, heavy: 226, anger: 6, calm: 205 })[n.m.emo || 'calm'] || 205;
+      const sat = n.warm ? 80 : 52;
+
+      const spr = glowSprite(hue, sat);
+      // 核心节点：更宽的呼吸光晕（约 7 秒一轮）
+      if (n.core) {
+        const halo = 0.72 + 0.28 * Math.sin(t / 1100 + n.tw);
+        const hgr = size * (4.6 + halo * 0.9);
+        ctx.globalAlpha = 0.16 + 0.14 * halo;
+        ctx.drawImage(spr, n.sx - hgr, n.sy - hgr, hgr * 2, hgr * 2);
+      }
+      const gr = size * (n.warm ? 3.1 : 2.6);
+      ctx.globalAlpha = clamp(alpha * (n.warm ? 1.0 : 0.70), 0, 1);
       ctx.drawImage(spr, n.sx - gr, n.sy - gr, gr * 2, gr * 2);
+
       ctx.globalAlpha = clamp(alpha, 0, 1);
       ctx.fillStyle = starFill(hue);
-      ctx.beginPath(); ctx.arc(n.sx, n.sy, Math.max(0.5, size * 0.48), 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(n.sx, n.sy, Math.max(0.5, size * (n.warm ? 0.46 : 0.40)), 0, Math.PI * 2); ctx.fill();
+
       if (n.core) {
-        ctx.globalAlpha = 0.4 * twk;
-        ctx.strokeStyle = 'rgba(255,255,255,.9)';
-        ctx.lineWidth = 0.8;
-        ctx.beginPath(); ctx.arc(n.sx, n.sy, size * 2.1, 0, Math.PI * 2); ctx.stroke();
+        // 白环 + 慢涟漪
+        ctx.globalAlpha = 0.26 * breath;
+        ctx.strokeStyle = 'rgba(255,245,222,.85)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath(); ctx.arc(n.sx, n.sy, size * 1.9, 0, Math.PI * 2); ctx.stroke();
+        const rip = (t / 9000 + n.tw * 0.12) % 1;
+        ctx.globalAlpha = (1 - rip) * 0.18;
+        ctx.beginPath(); ctx.arc(n.sx, n.sy, size * (1.9 + rip * 1.8), 0, Math.PI * 2); ctx.stroke();
       }
       if (rehearsedPfx.some(p => n.m.c.startsWith(p))) {
-        ctx.globalAlpha = 0.45 + 0.3 * Math.sin(t / 800 + n.tw);
-        ctx.strokeStyle = 'rgba(255,255,255,.95)';
-        ctx.setLineDash([2.5, 4]);
-        ctx.lineWidth = 0.9;
-        ctx.beginPath(); ctx.arc(n.sx, n.sy, size * 2.8, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 0.26 + 0.12 * Math.sin(t / 2600 + n.tw);
+        ctx.strokeStyle = 'rgba(255,255,255,.75)';
+        ctx.setLineDash([2.5, 5]);
+        ctx.lineWidth = 0.75;
+        ctx.beginPath(); ctx.arc(n.sx, n.sy, size * 2.6, 0, Math.PI * 2); ctx.stroke();
         ctx.setLineDash([]);
         ctx.globalAlpha = 1;
       }
@@ -552,15 +646,22 @@
 
     for (const n of _behind) drawNode(n);
 
-    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulse * 2.4);
-    core.addColorStop(0, 'hsla(' + moodTint.hue + ', 90%, 78%, .95)');
-    core.addColorStop(0.4, 'hsla(' + moodTint.hue + ', 80%, 60%, .5)');
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulse * 2.8);
+    core.addColorStop(0, 'hsla(' + moodTint.hue + ', 82%, 82%, .78)');
+    core.addColorStop(0.38, 'hsla(' + moodTint.hue + ', 72%, 62%, .34)');
     core.addColorStop(1, 'rgba(4,7,15,0)');
     ctx.fillStyle = core;
     ctx.globalAlpha = 1;
-    ctx.beginPath(); ctx.arc(cx, cy, pulse * 2.4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(240,250,255,.95)';
-    ctx.beginPath(); ctx.arc(cx, cy, 3.4 + energy * 0.02, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, pulse * 2.8, 0, Math.PI * 2); ctx.fill();
+    // 中心慢涟漪：约 11 秒一圈，只一圈、极淡
+    const rip = (t / 11000) % 1;
+    ctx.globalAlpha = (1 - rip) * 0.12;
+    ctx.strokeStyle = 'hsla(' + moodTint.hue + ', 80%, 85%, .7)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(cx, cy, pulse * (1.8 + rip * 2.2), 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(240,250,255,.86)';
+    ctx.beginPath(); ctx.arc(cx, cy, 2.8 + energy * 0.014, 0, Math.PI * 2); ctx.fill();
 
     for (const n of _front) drawNode(n);
     for (const n of _paper) { drawPaper(n, t); try { window.__dbg.paper++; } catch {} }
@@ -634,7 +735,7 @@
     for (const h of (DATA.history || [])) {
       const d = document.createElement('div');
       d.className = h.r === '他' ? 'him' : '';
-      d.textContent = (h.r === '他' ? '主人：' : 'AI：') + h.t;
+      d.textContent = (h.r === 'owner' ? '主人：' : 'AI：') + h.t;
       chat.appendChild(d);
     }
     moodTint = tintForMood(s.mood, s.pout);
